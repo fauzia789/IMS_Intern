@@ -1,0 +1,48 @@
+// Frontend: App.js (React)
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const App = () => {
+    const [applicants, setApplicants] = useState([]);
+    const [name, setName] = useState('');
+    const [status, setStatus] = useState('');
+
+    useEffect(() => {
+        fetchApplicants();
+    }, [name, status]);
+
+    const fetchApplicants = async () => {
+        const response = await axios.get('http://localhost:5000/applicants', {
+            params: { name, status },
+        });
+        setApplicants(response.data);
+    };
+
+    const deleteApplicant = async (id) => {
+        await axios.delete(`http://localhost:5000/applicants/${id}`);
+        fetchApplicants();
+    };
+
+    return (
+        <div>
+            <h1>Internship Management</h1>
+            <input placeholder="Search Name" onChange={(e) => setName(e.target.value)} />
+            <select onChange={(e) => setStatus(e.target.value)}>
+                <option value="">All</option>
+                <option value="New">New</option>
+                <option value="WIP">WIP</option>
+                <option value="Wait">Wait</option>
+                <option value="Pass">Pass</option>
+                <option value="Fail">Fail</option>
+                <option value="Hire">Hire</option>
+            </select>
+            <ul>
+                {applicants.map((app) => (
+                    <li key={app._id}>{app.name} - {app.status} <button onClick={() => deleteApplicant(app._id)}>Remove</button></li>
+                ))}
+            </ul>
+        </div>
+    );
+};
+
+export default App;
