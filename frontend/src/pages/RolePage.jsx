@@ -126,7 +126,55 @@ const RolePage = () => {
         </div>
       )}
 
-      {/* Update Modal */}
+      {/* Add Applicant Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center">
+          <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-2xl font-semibold mb-4">Add New Applicant</h2>
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white mb-3"
+              placeholder="Name"
+              value={newApplicant.name}
+              onChange={(e) => setNewApplicant({ ...newApplicant, name: e.target.value })}
+            />
+            <input
+              type="date"
+              className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white mb-3"
+              value={newApplicant.applicationDate}
+              onChange={(e) => setNewApplicant({ ...newApplicant, applicationDate: e.target.value })}
+            />
+            <select
+              className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white mb-3"
+              value={newApplicant.status}
+              onChange={(e) => setNewApplicant({ ...newApplicant, status: e.target.value })}
+            >
+              <option value="">Select Status</option>
+              {['New', 'WIP', 'Wait', 'Pass', 'Fail', 'Hire'].map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+            <div className="flex justify-between">
+              <button
+                className="px-4 py-2 bg-green-500 text-white rounded shadow hover:bg-green-600"
+                onClick={handleAddApplicant}
+              >
+                Save
+              </button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Applicant Modal */}
       {showUpdateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center">
           <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96">
