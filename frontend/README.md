@@ -14,4 +14,4 @@ Update: Update applicants' application status and date.
 Recommendations:
 Error Handling: Ensure that all error messages are displayed clearly in both the frontend and backend. It might be helpful to create custom error messages for specific actions.
 Security: Consider using environment variables for sensitive data like MongoDB credentials instead of hardcoding them in the config.js file.
-User Authentication: If this app requires login, consider implementing JWT-based authentication and authorization for restricted actions.
+
