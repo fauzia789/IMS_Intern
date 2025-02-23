@@ -66,4 +66,18 @@ app.delete('/applicants/:id', async (req, res) => {
   }
 });
 
+// update
+app.put('/applicants/:id', async (req, res) => {
+  try {
+    const { applicationDate, status } = req.body;
+    const updatedApplicant = await Applicant.findByIdAndUpdate(
+      req.params.id,
+      { applicationDate, status },
+      { new: true }
+    );
+    res.json(updatedApplicant);
+  } catch (err) {
+    res.status(500).json({ error: 'Error updating applicant' });
+  }
+});
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -9,11 +9,9 @@ const RolePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [newApplicant, setNewApplicant] = useState({
-    name: '',
-    applicationDate: '',
-    status: '',
-  });
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [newApplicant, setNewApplicant] = useState({ name: '', applicationDate: '', status: '' });
+  const [updateApplicant, setUpdateApplicant] = useState({ id: '', applicationDate: '', status: '' });
 
   useEffect(() => {
     fetchApplicants();
@@ -23,9 +21,7 @@ const RolePage = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get('http://localhost:5555/applicants', {
-        params: { role: decodedRole },
-      });
+      const response = await axios.get('http://localhost:5555/applicants', { params: { role: decodedRole } });
       setApplicants(response.data);
     } catch (err) {
       setError('Error fetching applicants. Try again later.');
@@ -39,12 +35,8 @@ const RolePage = () => {
       alert('Please fill all fields.');
       return;
     }
-
     try {
-      await axios.post('http://localhost:5555/applicants', {
-        ...newApplicant,
-        role: decodedRole,
-      });
+      await axios.post('http://localhost:5555/applicants', { ...newApplicant, role: decodedRole });
       fetchApplicants();
       setShowModal(false);
       setNewApplicant({ name: '', applicationDate: '', status: '' });
@@ -62,11 +54,28 @@ const RolePage = () => {
     }
   };
 
+  const openUpdateModal = (applicant) => {
+    setUpdateApplicant({ id: applicant._id, applicationDate: applicant.applicationDate.split('T')[0], status: applicant.status });
+    setShowUpdateModal(true);
+  };
+
+  const handleUpdateApplicant = async () => {
+    if (!updateApplicant.applicationDate || !updateApplicant.status) {
+      alert('Please select status and date.');
+      return;
+    }
+    try {
+      await axios.put(`http://localhost:5555/applicants/${updateApplicant.id}`, updateApplicant);
+      fetchApplicants();
+      setShowUpdateModal(false);
+    } catch (err) {
+      alert('Error updating applicant.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-900 to-gray-700 text-white p-6">
-      <h1 className="text-4xl font-semibold text-center mb-8">
-        Applicants for {decodedRole}
-      </h1>
+      <h1 className="text-4xl font-semibold text-center mb-8">Applicants for {decodedRole}</h1>
 
       <button
         className="mb-6 px-4 py-2 bg-yellow-500 text-white rounded-lg shadow-lg hover:bg-yellow-600 transition duration-200"
@@ -94,11 +103,15 @@ const RolePage = () => {
               {applicants.map((applicant) => (
                 <tr key={applicant._id} className="border-b hover:bg-gray-200">
                   <td className="py-3 px-4 text-gray-900">{applicant.name}</td>
-                  <td className="py-3 px-4 text-gray-900">
-                    {new Date(applicant.applicationDate).toLocaleDateString()}
-                  </td>
+                  <td className="py-3 px-4 text-gray-900">{new Date(applicant.applicationDate).toLocaleDateString()}</td>
                   <td className="py-3 px-4 text-gray-900">{applicant.status}</td>
-                  <td className="py-3 px-4 text-center">
+                  <td className="py-3 px-4 text-center space-x-2">
+                    <button
+                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition"
+                      onClick={() => openUpdateModal(applicant)}
+                    >
+                      Update
+                    </button>
                     <button
                       className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700 transition"
                       onClick={() => handleRemoveApplicant(applicant._id)}
@@ -113,28 +126,21 @@ const RolePage = () => {
         </div>
       )}
 
-      {/* Modal for Adding Applicant */}
-      {showModal && (
+      {/* Update Modal */}
+      {showUpdateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center">
           <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-2xl font-semibold mb-4">Add New Applicant</h2>
-            <input
-              type="text"
-              placeholder="Name"
-              className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white mb-3"
-              value={newApplicant.name}
-              onChange={(e) => setNewApplicant({ ...newApplicant, name: e.target.value })}
-            />
+            <h2 className="text-2xl font-semibold mb-4">Update Applicant</h2>
             <input
               type="date"
               className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white mb-3"
-              value={newApplicant.applicationDate}
-              onChange={(e) => setNewApplicant({ ...newApplicant, applicationDate: e.target.value })}
+              value={updateApplicant.applicationDate}
+              onChange={(e) => setUpdateApplicant({ ...updateApplicant, applicationDate: e.target.value })}
             />
             <select
               className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white mb-3"
-              value={newApplicant.status}
-              onChange={(e) => setNewApplicant({ ...newApplicant, status: e.target.value })}
+              value={updateApplicant.status}
+              onChange={(e) => setUpdateApplicant({ ...updateApplicant, status: e.target.value })}
             >
               <option value="">Select Status</option>
               {['New', 'WIP', 'Wait', 'Pass', 'Fail', 'Hire'].map((status) => (
@@ -146,13 +152,13 @@ const RolePage = () => {
             <div className="flex justify-between">
               <button
                 className="px-4 py-2 bg-green-500 text-white rounded shadow hover:bg-green-600"
-                onClick={handleAddApplicant}
+                onClick={handleUpdateApplicant}
               >
                 Save
               </button>
               <button
                 className="px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600"
-                onClick={() => setShowModal(false)}
+                onClick={() => setShowUpdateModal(false)}
               >
                 Cancel
               </button>
