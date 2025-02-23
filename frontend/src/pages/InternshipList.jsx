@@ -25,6 +25,18 @@ const InternshipList = () => {
     }
   };
 
+  // Define the deleteApplicant function
+  const deleteApplicant = async (id) => {
+    try {
+      // Make the delete API request
+      await axios.delete(`http://localhost:5555/applicants/${id}`);
+      // After successful deletion, remove the applicant from the state
+      setApplicants(applicants.filter(applicant => applicant._id !== id));
+    } catch (err) {
+      console.error('Error deleting applicant', err);
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-semibold text-center mb-6">Internship Applicants List</h1>

@@ -14,7 +14,7 @@ const AddApplicant = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5555/applicants', {
+      await axios.post('http://localhost:5555/applicants', {
         name,
         role,
         status,
