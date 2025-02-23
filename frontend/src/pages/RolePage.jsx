@@ -6,16 +6,25 @@ const RolePage = () => {
   const { role } = useParams();
   const decodedRole = decodeURIComponent(role);
   const [applicants, setApplicants] = useState([]);
+  const [filteredApplicants, setFilteredApplicants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('');
   const [newApplicant, setNewApplicant] = useState({ name: '', applicationDate: '', status: '' });
   const [updateApplicant, setUpdateApplicant] = useState({ id: '', applicationDate: '', status: '' });
+  const [showModal, setShowModal] = useState(false); // Added state for modal visibility
 
   useEffect(() => {
     fetchApplicants();
   }, [decodedRole]);
+
+  useEffect(() => {
+    if (statusFilter) {
+      setFilteredApplicants(applicants.filter((applicant) => applicant.status === statusFilter));
+    } else {
+      setFilteredApplicants(applicants);
+    }
+  }, [statusFilter, applicants]);
 
   const fetchApplicants = async () => {
     setLoading(true);
@@ -23,6 +32,7 @@ const RolePage = () => {
     try {
       const response = await axios.get('http://localhost:5555/applicants', { params: { role: decodedRole } });
       setApplicants(response.data);
+      setFilteredApplicants(response.data); // Initially show all applicants
     } catch (err) {
       setError('Error fetching applicants. Try again later.');
     } finally {
@@ -38,8 +48,8 @@ const RolePage = () => {
     try {
       await axios.post('http://localhost:5555/applicants', { ...newApplicant, role: decodedRole });
       fetchApplicants();
-      setShowModal(false);
       setNewApplicant({ name: '', applicationDate: '', status: '' });
+      setShowModal(false); // Close the modal after adding an applicant
     } catch (err) {
       alert('Error adding applicant. Try again.');
     }
@@ -55,22 +65,8 @@ const RolePage = () => {
   };
 
   const openUpdateModal = (applicant) => {
-    setUpdateApplicant({ id: applicant._id, applicationDate: applicant.applicationDate.split('T')[0], status: applicant.status });
-    setShowUpdateModal(true);
-  };
-
-  const handleUpdateApplicant = async () => {
-    if (!updateApplicant.applicationDate || !updateApplicant.status) {
-      alert('Please select status and date.');
-      return;
-    }
-    try {
-      await axios.put(`http://localhost:5555/applicants/${updateApplicant.id}`, updateApplicant);
-      fetchApplicants();
-      setShowUpdateModal(false);
-    } catch (err) {
-      alert('Error updating applicant.');
-    }
+    setUpdateApplicant(applicant);
+    setShowModal(true); // Open the modal when updating an applicant
   };
 
   return (
@@ -83,6 +79,19 @@ const RolePage = () => {
       >
         + Add Applicant
       </button>
+
+      <select
+        className="mb-6 px-4 py-2 bg-gray-800 text-white rounded-lg shadow-lg"
+        value={statusFilter}
+        onChange={(e) => setStatusFilter(e.target.value)}
+      >
+        <option value="">Select Status</option>
+        {['New', 'WIP', 'Wait', 'Pass', 'Fail', 'Hire'].map((status) => (
+          <option key={status} value={status}>
+            {status}
+          </option>
+        ))}
+      </select>
 
       {loading ? (
         <div className="text-center text-gray-200">Loading...</div>
@@ -100,7 +109,7 @@ const RolePage = () => {
               </tr>
             </thead>
             <tbody>
-              {applicants.map((applicant) => (
+              {filteredApplicants.map((applicant) => (
                 <tr key={applicant._id} className="border-b hover:bg-gray-200">
                   <td className="py-3 px-4 text-gray-900">{applicant.name}</td>
                   <td className="py-3 px-4 text-gray-900">{new Date(applicant.applicationDate).toLocaleDateString()}</td>
@@ -165,48 +174,7 @@ const RolePage = () => {
               </button>
               <button
                 className="px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Update Applicant Modal */}
-      {showUpdateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center">
-          <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-2xl font-semibold mb-4">Update Applicant</h2>
-            <input
-              type="date"
-              className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white mb-3"
-              value={updateApplicant.applicationDate}
-              onChange={(e) => setUpdateApplicant({ ...updateApplicant, applicationDate: e.target.value })}
-            />
-            <select
-              className="w-full p-2 border border-gray-600 rounded bg-gray-800 text-white mb-3"
-              value={updateApplicant.status}
-              onChange={(e) => setUpdateApplicant({ ...updateApplicant, status: e.target.value })}
-            >
-              <option value="">Select Status</option>
-              {['New', 'WIP', 'Wait', 'Pass', 'Fail', 'Hire'].map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-            <div className="flex justify-between">
-              <button
-                className="px-4 py-2 bg-green-500 text-white rounded shadow hover:bg-green-600"
-                onClick={handleUpdateApplicant}
-              >
-                Save
-              </button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600"
-                onClick={() => setShowUpdateModal(false)}
+                onClick={() => setShowModal(false)} // Close the modal
               >
                 Cancel
               </button>
